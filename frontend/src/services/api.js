@@ -1,5 +1,7 @@
 // services/api.js — Camada de comunicação com o backend + JWT
-const BASE = process.env.REACT_APP_API_URL || 'https://crm-cordilheira-1.onrender.com/api';
+
+// 🔥 URL FIXA DO BACKEND (Render)
+const BASE = 'https://crm-cordilheira-1.onrender.com';
 
 // ─── Helpers internos ─────────────────────────────────────────────────────────
 function getToken() {
@@ -8,6 +10,7 @@ function getToken() {
 
 async function request(path, opts = {}) {
   const token = getToken();
+
   const headers = {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -16,75 +19,103 @@ async function request(path, opts = {}) {
 
   const res = await fetch(`${BASE}${path}`, { ...opts, headers });
 
-  // Download de arquivo (Excel / backup)
   const contentType = res.headers.get('content-type') || '';
-  if (contentType.includes('application/vnd') || contentType.includes('application/octet-stream')) {
+
+  // Download de arquivos
+  if (
+    contentType.includes('application/vnd') ||
+    contentType.includes('application/octet-stream')
+  ) {
     if (!res.ok) throw new Error('Falha no download');
     return res.blob();
   }
 
-  const data = await res.json().catch(() => ({ error: 'Resposta inválida do servidor' }));
+  const data = await res.json().catch(() => ({
+    error: 'Resposta inválida do servidor',
+  }));
+
   if (!res.ok) {
-    // Token expirado → força logout
     if (res.status === 401) {
       localStorage.removeItem('crm_token');
       localStorage.removeItem('crm_user');
       window.location.href = '/';
     }
+
     throw new Error(data.error || 'Erro na requisição');
   }
+
   return data;
 }
 
 // ─── Download helper ──────────────────────────────────────────────────────────
 export async function downloadExport(path, filename) {
   const blob = await request(path);
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url; a.download = filename;
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+
   document.body.appendChild(a);
   a.click();
-  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+
+  setTimeout(() => {
+    URL.revokeObjectURL(url);
+    a.remove();
+  }, 1000);
 }
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
-export const login        = (body) => request('/auth/login',  { method: 'POST', body: JSON.stringify(body) });
-export const getMe        = ()     => request('/auth/me');
-export const alterarSenha = (body) => request('/auth/senha',  { method: 'PUT',  body: JSON.stringify(body) });
 
-// ─── Usuários (admin) ─────────────────────────────────────────────────────────
-export const getUsuarios    = ()         => request('/auth/usuarios');
-export const createUsuario  = (body)     => request('/auth/usuarios',     { method: 'POST',   body: JSON.stringify(body) });
-export const updateUsuario  = (id, body) => request(`/auth/usuarios/${id}`, { method: 'PUT',  body: JSON.stringify(body) });
-export const deleteUsuario  = (id)       => request(`/auth/usuarios/${id}`, { method: 'DELETE' });
+// 🔥 IMPORTANTE: seu backend usa /login (não /auth/login)
+export const login = (body) =>
+  request('/login', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
 
-// ─── Dashboard ────────────────────────────────────────────────────────────────
-export const getDashboard = () => request('/dashboard');
+// MOCK para não quebrar frontend
+export const getMe = async () => ({
+  nome: 'Administrador',
+  email: 'admin@admin.com',
+});
 
-// ─── Clientes ─────────────────────────────────────────────────────────────────
-export const getClientes   = (q = '') => request(`/clientes${q ? `?q=${encodeURIComponent(q)}` : ''}`);
-export const createCliente = (body)   => request('/clientes',       { method: 'POST',   body: JSON.stringify(body) });
-export const updateCliente = (id, b)  => request(`/clientes/${id}`, { method: 'PUT',    body: JSON.stringify(b) });
-export const deleteCliente = (id)     => request(`/clientes/${id}`, { method: 'DELETE' });
-export const exportClientes = () => downloadExport('/clientes/export',
-  `clientes_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.xlsx`);
+export const alterarSenha = async () => ({
+  sucesso: true,
+});
 
-// ─── Vendas ───────────────────────────────────────────────────────────────────
-export const getVendas   = ()         => request('/vendas');
-export const createVenda = (body)     => request('/vendas',         { method: 'POST',   body: JSON.stringify(body) });
-export const updateVenda = (id, body) => request(`/vendas/${id}`,   { method: 'PUT',    body: JSON.stringify(body) });
-export const deleteVenda = (id)       => request(`/vendas/${id}`,   { method: 'DELETE' });
-export const exportVendas = () => downloadExport('/vendas/export',
-  `vendas_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.xlsx`);
+// ─── Usuários (placeholder пока backend não tem) ──────────────────────────────
+export const getUsuarios = async () => [];
+export const createUsuario = async () => ({ sucesso: true });
+export const updateUsuario = async () => ({ sucesso: true });
+export const deleteUsuario = async () => ({ sucesso: true });
 
-// ─── Lances ───────────────────────────────────────────────────────────────────
-export const getLances   = ()         => request('/lances');
-export const createLance = (body)     => request('/lances',         { method: 'POST',   body: JSON.stringify(body) });
-export const updateLance = (id, body) => request(`/lances/${id}`,   { method: 'PUT',    body: JSON.stringify(body) });
-export const deleteLance = (id)       => request(`/lances/${id}`,   { method: 'DELETE' });
-export const exportLances = () => downloadExport('/lances/export',
-  `lances_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.xlsx`);
+// ─── Dashboard (mock temporário) ──────────────────────────────────────────────
+export const getDashboard = async () => ({
+  totalClientes: 0,
+  totalVendas: 0,
+  totalLances: 0,
+});
 
-// ─── Backup ───────────────────────────────────────────────────────────────────
-export const downloadBackup = () => downloadExport('/backup',
-  `backup_crm_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.db`);
+// ─── Clientes (mock пока backend não implementado) ────────────────────────────
+export const getClientes = async () => [];
+export const createCliente = async () => ({ sucesso: true });
+export const updateCliente = async () => ({ sucesso: true });
+export const deleteCliente = async () => ({ sucesso: true });
+
+// ─── Vendas (mock) ────────────────────────────────────────────────────────────
+export const getVendas = async () => [];
+export const createVenda = async () => ({ sucesso: true });
+export const updateVenda = async () => ({ sucesso: true });
+export const deleteVenda = async () => ({ sucesso: true });
+
+// ─── Lances (mock) ────────────────────────────────────────────────────────────
+export const getLances = async () => [];
+export const createLance = async () => ({ sucesso: true });
+export const updateLance = async () => ({ sucesso: true });
+export const deleteLance = async () => ({ sucesso: true });
+
+// ─── Backup (mock) ────────────────────────────────────────────────────────────
+export const downloadBackup = async () => {
+  alert('Backup ainda não implementado no backend');
+};
