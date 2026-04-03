@@ -1,0 +1,18 @@
+{
+  "name": "crm-pro-v2",
+  "version": "2.0.0",
+  "description": "CRM Pro — Sistema profissional multiusuário",
+  "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "install:all":      "npm install --prefix backend && npm install --prefix frontend",
+    "start:backend":    "npm start --prefix backend",
+    "dev:backend":      "npm run dev --prefix backend",
+    "start:frontend":   "npm start --prefix frontend",
+    "build:frontend":   "npm run build --prefix frontend",
+    "dev":              "npm run dev:backend & npm run start:frontend",
+    "start":            "npm run start:backend"
+  }
+}
