@@ -1,5 +1,5 @@
 // services/api.js — Camada de comunicação com o backend + JWT
-const BASE = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+const BASE = process.env.REACT_APP_API_URL || 'https://crm-cordilheira-1.onrender.com/api';
 
 // ─── Helpers internos ─────────────────────────────────────────────────────────
 function getToken() {
