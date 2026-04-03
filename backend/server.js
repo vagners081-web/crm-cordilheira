@@ -141,8 +141,11 @@ app.use((err, _req, res, _next) => {
 });
 
 // ─── Start ────────────────────────────────────────────────────────────────────
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n🚀 CRM Pro v2 — Backend`);
+  console.log(`   Ambiente : ${process.env.NODE_ENV || 'development'}`);
+  console.log(`   Porta    : ${PORT}`);
+});
   console.log(`   Ambiente : ${process.env.NODE_ENV || 'development'}`);
   console.log(`   URL      : http://localhost:${PORT}`);
   console.log(`   Dashboard: http://localhost:${PORT}/api/dashboard\n`);
