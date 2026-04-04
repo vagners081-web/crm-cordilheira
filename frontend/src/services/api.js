@@ -1,44 +1,66 @@
 const BASE = 'https://crm-cordilheira-1.onrender.com';
 
-// LOGIN
+// ─── TOKEN ─────────────────────────
+function getToken() {
+  return localStorage.getItem('crm_token');
+}
+
+// ─── REQUEST PADRÃO ───────────────
+async function request(path, options = {}) {
+  const token = getToken();
+
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(token && { Authorization: `Bearer ${token}` }),
+  };
+
+  const res = await fetch(`${BASE}${path}`, {
+    ...options,
+    headers,
+  });
+
+  let data;
+  try {
+    data = await res.json();
+  } catch {
+    throw new Error('Servidor não respondeu corretamente');
+  }
+
+  if (!res.ok) {
+    throw new Error(data.error || 'Erro no servidor');
+  }
+
+  return data;
+}
+
+// ─── LOGIN (AJUSTADO) ─────────────
 export const login = async (body) => {
-  const res = await fetch(`${BASE}/login`, {
+  const data = await request('/login', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
 
-  if (!res.ok) throw new Error('Login inválido');
+  // SALVA TOKEN E USUÁRIO
+  localStorage.setItem('crm_token', data.token);
+  localStorage.setItem('crm_user', JSON.stringify(data.user));
 
-  return res.json();
+  return data;
 };
 
-// USUÁRIOS
-export const getUsuarios = async () => {
-  const res = await fetch(`${BASE}/usuarios`);
-  return res.json();
-};
+// ─── USUÁRIOS ─────────────────────
+export const getUsuarios = () => request('/usuarios');
 
-export const createUsuario = async (body) => {
-  const res = await fetch(`${BASE}/usuarios`, {
+export const createUsuario = (body) =>
+  request('/usuarios', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-  return res.json();
-};
 
-// CLIENTES
-export const getClientes = async () => {
-  const res = await fetch(`${BASE}/clientes`);
-  return res.json();
-};
+// ─── CLIENTES ─────────────────────
+export const getClientes = () => request('/clientes');
 
-export const createCliente = async (body) => {
-  const res = await fetch(`${BASE}/clientes`, {
+export const createCliente = (body) =>
+  request('/clientes', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-  return res.json();
-};
