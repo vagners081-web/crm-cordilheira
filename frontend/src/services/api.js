@@ -1,85 +1,78 @@
 const BASE = 'https://crm-cordilheira-1.onrender.com';
 
-// ─── AUTH ─────────────────────────────
-export const login = async (body) => {
-  const res = await fetch(`${BASE}/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+// ─── REQUEST BASE ─────────────────────────
+async function request(url, options = {}) {
+  const res = await fetch(`${BASE}${url}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    },
+    ...options
   });
 
-  if (!res.ok) throw new Error('Login inválido');
+  const data = await res.json().catch(() => null);
 
-  return res.json();
-};
+  if (!res.ok) {
+    throw new Error(data?.error || 'Erro no servidor');
+  }
 
-export const getMe = async () => ({
-  id: 1,
-  nome: 'Administrador',
-  email: 'admin@admin.com',
-  role: 'admin'
-});
+  return data;
+}
 
-export const alterarSenha = async () => ({ sucesso: true });
+// ─── AUTH ─────────────────────────
+export const login = (body) =>
+  request('/login', {
+    method: 'POST',
+    body: JSON.stringify(body)
+  });
+
+export const getMe = () =>
+  request('/me');
+
+export const alterarSenha = (body) =>
+  request('/senha', {
+    method: 'PUT',
+    body: JSON.stringify(body)
+  });
 
 // ─── USUÁRIOS ─────────────────────────
-export const getUsuarios = async () => {
-  const res = await fetch(`${BASE}/usuarios`);
-  return res.json();
-};
+export const getUsuarios = () =>
+  request('/usuarios');
 
-export const createUsuario = async (body) => {
-  const res = await fetch(`${BASE}/usuarios`, {
+export const createUsuario = (body) =>
+  request('/usuarios', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify(body)
   });
-  return res.json();
-};
 
-export const updateUsuario = async () => ({});
-export const deleteUsuario = async () => ({});
+export const updateUsuario = (id, body) =>
+  request(`/usuarios/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(body)
+  });
 
-// ─── DASHBOARD ────────────────────────
-export const getDashboard = async () => ({
-  total: 0,
-  ativos: 0,
-  inativos: 0,
-  credito: 0
-});
+export const deleteUsuario = (id) =>
+  request(`/usuarios/${id}`, {
+    method: 'DELETE'
+  });
 
 // ─── CLIENTES ─────────────────────────
-export const getClientes = async () => {
-  const res = await fetch(`${BASE}/clientes`);
-  return res.json();
-};
+export const getClientes = () =>
+  request('/clientes');
 
-export const createCliente = async (body) => {
-  const res = await fetch(`${BASE}/clientes`, {
+export const createCliente = (body) =>
+  request('/clientes', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    body: JSON.stringify(body)
   });
-  return res.json();
-};
 
-export const updateCliente = async () => ({});
-export const deleteCliente = async () => ({});
-export const exportClientes = async () => ({});
+export const updateCliente = (id, body) =>
+  request(`/clientes/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(body)
+  });
 
-// ─── VENDAS ───────────────────────────
-export const getVendas = async () => [];
-export const createVenda = async () => ({});
-export const updateVenda = async () => ({});
-export const deleteVenda = async () => ({});
-export const exportVendas = async () => ({});
-
-// ─── LANCES ───────────────────────────
-export const getLances = async () => [];
-export const createLance = async () => ({});
-export const updateLance = async () => ({});
-export const deleteLance = async () => ({});
-export const exportLances = async () => ({});
-
-// ─── BACKUP ───────────────────────────
-export const downloadBackup = async () => ({});
+export const deleteCliente = (id) =>
+  request(`/clientes/${id}`, {
+    method: 'DELETE'
+  });
