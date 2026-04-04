@@ -1,5 +1,6 @@
 const BASE = 'https://crm-cordilheira-1.onrender.com';
 
+// ─── AUTH ─────────────────────────────────────
 export const login = async (body) => {
   const res = await fetch(`${BASE}/login`, {
     method: 'POST',
@@ -7,21 +8,60 @@ export const login = async (body) => {
     body: JSON.stringify(body),
   });
 
-  const data = await res.json();
+  if (!res.ok) throw new Error('Login inválido');
 
-  if (!res.ok) throw new Error(data.error);
-
-  localStorage.setItem('crm_token', data.token);
-  localStorage.setItem('crm_user', JSON.stringify(data.user));
-
-  return data;
+  return res.json();
 };
-export const alterarSenha = async (body) => {
-  const res = await fetch(`${BASE}/alterar-senha`, {
-    method: 'PUT',
+
+export const getMe = async () => {
+  return {
+    id: 1,
+    nome: 'Administrador',
+    email: 'admin@admin.com',
+    role: 'admin'
+  };
+};
+
+export const alterarSenha = async () => {
+  return { sucesso: true };
+};
+
+// ─── USUÁRIOS ─────────────────────────────────
+export const getUsuarios = async () => {
+  const res = await fetch(`${BASE}/usuarios`);
+  return res.json();
+};
+
+export const createUsuario = async (body) => {
+  const res = await fetch(`${BASE}/usuarios`, {
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   });
-
   return res.json();
+};
+
+// ─── CLIENTES ─────────────────────────────────
+export const getClientes = async () => {
+  const res = await fetch(`${BASE}/clientes`);
+  return res.json();
+};
+
+export const createCliente = async (body) => {
+  const res = await fetch(`${BASE}/clientes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  return res.json();
+};
+
+// ─── DASHBOARD ────────────────────────────────
+export const getDashboard = async () => {
+  return {
+    total: 0,
+    ativos: 0,
+    inativos: 0,
+    credito: 0
+  };
 };
