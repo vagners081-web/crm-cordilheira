@@ -1,6 +1,6 @@
 const BASE = 'https://crm-cordilheira-1.onrender.com';
 
-// ─── AUTH ─────────────────────────────────────
+// ─── AUTH ─────────────────────────────
 export const login = async (body) => {
   const res = await fetch(`${BASE}/login`, {
     method: 'POST',
@@ -13,20 +13,16 @@ export const login = async (body) => {
   return res.json();
 };
 
-export const getMe = async () => {
-  return {
-    id: 1,
-    nome: 'Administrador',
-    email: 'admin@admin.com',
-    role: 'admin'
-  };
-};
+export const getMe = async () => ({
+  id: 1,
+  nome: 'Administrador',
+  email: 'admin@admin.com',
+  role: 'admin'
+});
 
-export const alterarSenha = async () => {
-  return { sucesso: true };
-};
+export const alterarSenha = async () => ({ sucesso: true });
 
-// ─── USUÁRIOS ─────────────────────────────────
+// ─── USUÁRIOS ─────────────────────────
 export const getUsuarios = async () => {
   const res = await fetch(`${BASE}/usuarios`);
   return res.json();
@@ -41,7 +37,18 @@ export const createUsuario = async (body) => {
   return res.json();
 };
 
-// ─── CLIENTES ─────────────────────────────────
+export const updateUsuario = async () => ({});
+export const deleteUsuario = async () => ({});
+
+// ─── DASHBOARD ────────────────────────
+export const getDashboard = async () => ({
+  total: 0,
+  ativos: 0,
+  inativos: 0,
+  credito: 0
+});
+
+// ─── CLIENTES ─────────────────────────
 export const getClientes = async () => {
   const res = await fetch(`${BASE}/clientes`);
   return res.json();
@@ -56,12 +63,23 @@ export const createCliente = async (body) => {
   return res.json();
 };
 
-// ─── DASHBOARD ────────────────────────────────
-export const getDashboard = async () => {
-  return {
-    total: 0,
-    ativos: 0,
-    inativos: 0,
-    credito: 0
-  };
-};
+export const updateCliente = async () => ({});
+export const deleteCliente = async () => ({});
+export const exportClientes = async () => ({});
+
+// ─── VENDAS ───────────────────────────
+export const getVendas = async () => [];
+export const createVenda = async () => ({});
+export const updateVenda = async () => ({});
+export const deleteVenda = async () => ({});
+export const exportVendas = async () => ({});
+
+// ─── LANCES ───────────────────────────
+export const getLances = async () => [];
+export const createLance = async () => ({});
+export const updateLance = async () => ({});
+export const deleteLance = async () => ({});
+export const exportLances = async () => ({});
+
+// ─── BACKUP ───────────────────────────
+export const downloadBackup = async () => ({});
