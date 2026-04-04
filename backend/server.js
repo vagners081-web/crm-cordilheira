@@ -1,132 +1,82 @@
 const express = require('express');
 const cors = require('cors');
+const fs = require('fs');
 
 const app = express();
-
-// ✅ CORS liberado (Vercel + local)
-app.use(cors({
-  origin: [
-    'https://crm-cordilheira-9yir.vercel.app',
-    'http://localhost:3000'
-  ],
-  credentials: true
-}));
-
+app.use(cors());
 app.use(express.json());
 
-// =============================
-// 🔥 BANCO TEMPORÁRIO (MEMÓRIA)
-// =============================
-let usuarios = [
-  {
-    id: 1,
-    nome: 'Administrador',
-    email: 'admin@admin.com',
-    senha: '123456',
-    role: 'admin'
+// ─── BANCO SIMPLES (arquivo JSON) ─────────────────────────
+const DB_FILE = './db.json';
+
+function loadDB() {
+  if (!fs.existsSync(DB_FILE)) {
+    const initial = {
+      usuarios: [
+        { id: 1, nome: 'Admin', email: 'admin@admin.com', senha: '123456' }
+      ],
+      clientes: []
+    };
+    fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2));
   }
-];
+  return JSON.parse(fs.readFileSync(DB_FILE));
+}
 
-// =============================
-// 🚀 ROTAS
-// =============================
+function saveDB(data) {
+  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
+}
 
-// TESTE
-app.get('/', (req, res) => {
-  res.send('Backend rodando 🚀');
-});
-
-// LOGIN
-app.post('/api/auth/login', (req, res) => {
+// ─── LOGIN ───────────────────────────────────────────────
+app.post('/login', (req, res) => {
   const { email, senha } = req.body;
+  const db = loadDB();
 
-  const user = usuarios.find(u => u.email === email && u.senha === senha);
+  const user = db.usuarios.find(u => u.email === email && u.senha === senha);
 
   if (!user) {
     return res.status(401).json({ error: 'Credenciais inválidas' });
   }
 
-  return res.json({
-    token: 'fake-jwt-token',
-    user: {
-      id: user.id,
-      nome: user.nome,
-      email: user.email,
-      role: user.role
-    }
-  });
-});
-
-// USUÁRIO LOGADO
-app.get('/api/auth/me', (req, res) => {
   res.json({
-    id: 1,
-    nome: 'Administrador',
-    email: 'admin@admin.com',
-    role: 'admin'
+    token: 'fake-jwt',
+    user: { nome: user.nome, email: user.email }
   });
 });
 
-// =============================
-// 👥 USUÁRIOS (CRUD)
-// =============================
-
-// LISTAR
-app.get('/api/auth/usuarios', (req, res) => {
-  res.json(usuarios);
+// ─── USUÁRIOS ────────────────────────────────────────────
+app.get('/usuarios', (req, res) => {
+  const db = loadDB();
+  res.json(db.usuarios);
 });
 
-// CRIAR
-app.post('/api/auth/usuarios', (req, res) => {
-  const { nome, email, senha } = req.body;
-
-  const novo = {
-    id: Date.now(),
-    nome,
-    email,
-    senha,
-    role: 'user'
-  };
-
-  usuarios.push(novo);
+app.post('/usuarios', (req, res) => {
+  const db = loadDB();
+  const novo = { id: Date.now(), ...req.body };
+  db.usuarios.push(novo);
+  saveDB(db);
   res.json(novo);
 });
 
-// ATUALIZAR
-app.put('/api/auth/usuarios/:id', (req, res) => {
-  const id = Number(req.params.id);
-  const index = usuarios.findIndex(u => u.id === id);
-
-  if (index === -1) {
-    return res.status(404).json({ error: 'Usuário não encontrado' });
-  }
-
-  usuarios[index] = { ...usuarios[index], ...req.body };
-  res.json(usuarios[index]);
+// ─── CLIENTES ────────────────────────────────────────────
+app.get('/clientes', (req, res) => {
+  const db = loadDB();
+  res.json(db.clientes);
 });
 
-// DELETAR
-app.delete('/api/auth/usuarios/:id', (req, res) => {
-  const id = Number(req.params.id);
-  usuarios = usuarios.filter(u => u.id !== id);
-  res.json({ sucesso: true });
+app.post('/clientes', (req, res) => {
+  const db = loadDB();
+  const novo = { id: Date.now(), ...req.body };
+  db.clientes.push(novo);
+  saveDB(db);
+  res.json(novo);
 });
 
-// =============================
-// 🚀 DASHBOARD (fake)
-// =============================
-app.get('/api/dashboard', (req, res) => {
-  res.json({
-    clientes: 10,
-    vendas: 5,
-    lances: 3
-  });
+// ─── ROOT ────────────────────────────────────────────────
+app.get('/', (req, res) => {
+  res.send('Backend rodando 🚀');
 });
 
-// =============================
-// 🚀 SERVER
-// =============================
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
   console.log('Servidor rodando na porta ' + PORT);
